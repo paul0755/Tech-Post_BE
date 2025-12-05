@@ -1,0 +1,75 @@
+name: Deploy Backend
+
+# 🚀 deploy 브랜치로 push될 때마다 CI/CD 자동 실행
+on:
+  push:
+    branches:
+      - deploy
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest # GitHub Actions가 실행되는 가상머신 환경
+
+    steps:
+      # 1️⃣ 레포지토리 코드 체크아웃
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2️⃣ JDK 21 설치, Gradle 캐싱 적용
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      # 3️⃣ gradlew 실행 권한 부여
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # 4️⃣ 테스트 생략하고 Spring Boot Jar 빌드
+      - name: Build without tests
+        run: ./gradlew bootJar -x test
+
+      # 5️⃣ AWS 접근을 위한 액세스 키/시크릿 키 설정
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      # 6️⃣ ECR 로그인 → Docker Push 권한 획득
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      # 캐시 기능을 위해 buildx 드라이버 container 모드로 변경
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+          driver-opts: image=moby/buildkit:latest
+
+      # 7️⃣ Docker 이미지 빌드 + ECR에 Push / 레이어 캐싱 -> 빠른 빌드 속도
+      - name: Build and push Docker image (ARM64 only)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/arm64
+          push: true
+          tags: ${{ steps.login-ecr.outputs.registry }}/techpost-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max, ignore-error=true
+
+      # 8️⃣ EC2에 SSH 접속 후 deploy.sh 실행 → 자동 배포
+      - name: Deploy to EC2 using SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}       # EC2 퍼블릭 IP
+          username: ubuntu                    # EC2 기본 유저
+          key: ${{ secrets.EC2_SSH_KEY }}     # GitHub Secrets에 저장된 PEM 키
+          script: |
+            cd /home/ubuntu
+            chmod +x deploy.sh                # deploy.sh 실행 권한 보장
+            ./deploy.sh                       # 🔥 자동 배포 실행
