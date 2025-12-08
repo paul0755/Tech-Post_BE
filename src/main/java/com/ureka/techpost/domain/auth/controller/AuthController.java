@@ -1,5 +1,6 @@
 package com.ureka.techpost.domain.auth.controller;
 
+import com.ureka.techpost.domain.auth.dto.LoginDto;
 import com.ureka.techpost.domain.auth.dto.SignupDto;
 import com.ureka.techpost.domain.auth.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,6 +27,11 @@ public class AuthController {
 	public ResponseEntity<String> signup(@RequestBody SignupDto signupDto) {
 		authService.signup(signupDto);
 		return ResponseEntity.ok("회원가입 성공");
+	}
+
+	@PostMapping("/reissue")
+	public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
+		return authService.reissue(request, response);
 	}
 
 	@PostMapping("/login")

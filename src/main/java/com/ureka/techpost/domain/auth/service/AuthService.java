@@ -2,13 +2,17 @@ package com.ureka.techpost.domain.auth.service;
 
 import com.ureka.techpost.domain.auth.dto.LoginDto;
 import com.ureka.techpost.domain.auth.dto.SignupDto;
+import com.ureka.techpost.domain.auth.exception.InvalidTokenException;
 import com.ureka.techpost.domain.auth.jwt.JwtUtil;
 import com.ureka.techpost.domain.user.entity.User;
 import com.ureka.techpost.domain.user.repository.UserRepository;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -92,5 +96,51 @@ public class AuthService {
 		response.setStatus(HttpStatus.OK.value());
 	}
 
+	// 토큰 재발급
+	public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
+
+		String authorization = request.getHeader("Authorization");
+		// Access Token 검증
+		if (authorization == null || !authorization.startsWith("Bearer ")) {
+			throw new InvalidTokenException("액세스 토큰이 없습니다.");
+		}
+		String accessToken = authorization.split(" ")[1];
+
+		// Refresh 토큰 검증
+		String refresh = null;
+		Cookie[] cookies = request.getCookies();
+		if (cookies != null) {
+			for (Cookie cookie : cookies) {
+				if (cookie.getName().equals("refresh")) {
+					refresh = cookie.getValue();
+					break;
+				}
+			}
+		}
+
+		tokenService.validateRefreshToken(refresh);
+
+		// --- 검증 통과 --- //
+
+		// 기존 토큰에서 username 꺼냄
+		String username = jwtUtil.getUsernameFromExpirationToken(accessToken);
+
+		User foundUser = userRepository.findByUsername(username)
+				.orElseThrow(() -> new UsernameNotFoundException("회원을 찾을 수 없습니다."));
+
+		// 새로운 access/refresh 토큰 생성
+		String newAccess = jwtUtil.generateAccessToken("access", username, foundUser.getRoleName());
+		String newRefresh = jwtUtil.generateRefreshToken("refresh");
+
+		// 기존 Refresh 토큰 DB에서 삭제 후 새 Refresh 토큰 저장
+		tokenService.deleteByTokenValue(refresh);
+		tokenService.addRefreshToken(foundUser, newRefresh);
+
+		// 응답 설정
+		response.setHeader("Authorization", "Bearer " + newAccess);
+		response.addCookie(tokenService.createCookie("refresh", newRefresh));
+
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
 
 }
