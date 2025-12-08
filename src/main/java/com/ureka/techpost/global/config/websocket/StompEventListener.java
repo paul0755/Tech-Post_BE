@@ -1,3 +1,11 @@
+/**
+ * @file StompEventLister.java
+ @author 이재, 강승우
+ @version 1.0
+ @since 2025-12-08
+ @description 이 파일은 WebSocket 세션 관리 클래스입니다.
+ */
+
 package com.ureka.techpost.global.config.websocket;
 
 import java.util.Set;
