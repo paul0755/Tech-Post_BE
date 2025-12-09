@@ -108,4 +108,18 @@ public class ChatService {
                 .map(chatParticipant -> ChatRoomRes.from(chatParticipant.getChatRoom()))
                 .toList();
     }
+
+    @Transactional
+    public void joinChatRoom(CustomUserDetails userDetails, Long roomId) {
+        User user = userRepository.findById(userDetails.getUser().getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("user cannot be found"));
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new EntityNotFoundException("room cannot be found"));
+
+        ChatParticipant chatParticipant = ChatParticipant.builder()
+                .chatRoom(chatRoom)
+                .user(user)
+                .build();
+        chatParticipantRepository.save(chatParticipant);
+    }
 }

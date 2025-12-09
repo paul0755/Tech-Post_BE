@@ -14,6 +14,8 @@ import com.ureka.techpost.domain.chat.dto.response.ChatRoomRes;
 import com.ureka.techpost.domain.chat.service.ChatService;
 import com.ureka.techpost.global.apiPayload.ApiResponse;
 import java.util.List;
+
+import com.ureka.techpost.global.apiPayload.code.BaseCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,5 +50,11 @@ public class ChatController {
     @GetMapping("/my")
     public ApiResponse<List<ChatRoomRes>> getMyChatRoomList(@AuthenticationPrincipal CustomUserDetails UserDetail) {
         return ApiResponse.onSuccess(chatService.getMyChatRoomList(UserDetail));
+    }
+
+    @PostMapping("/{roomId}/join")
+    public ApiResponse<Void> joinChatRoom(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long roomId) {
+        chatService.joinChatRoom(userDetails, roomId);
+        return ApiResponse.onSuccess(null);
     }
 }
