@@ -5,6 +5,7 @@ import com.ureka.techpost.domain.post.dto.PostResponseDTO;
 import com.ureka.techpost.domain.post.dto.PostRequestDTO;
 import com.ureka.techpost.domain.post.service.PostService;
 import com.ureka.techpost.global.apiPayload.ApiResponse;
+import com.ureka.techpost.global.apiPayload.code.status.SuccessStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
@@ -33,12 +34,12 @@ public class PostController {
 
     @Operation(summary = "게시글 등록", description = "제목, 내용, 링크 등을 받아 게시글을 등록합니다.")
     @PostMapping("")
-    public ApiResponse<String> createPost(@RequestBody PostRequestDTO postRequestDTO,
+    public ApiResponse<Void> createPost(@RequestBody PostRequestDTO postRequestDTO,
                                           @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails){
 
         postService.save(postRequestDTO, userDetails);
 
-        return ApiResponse.onSuccess("게시글 등록 성공");
+        return ApiResponse.of(SuccessStatus._CREATED, null);
     }
 
     @Operation(summary = "게시글 목록 조회/검색", description = "키워드와 출처로 검색하거나 전체 목록을 페이징하여 조회합니다.")
@@ -60,12 +61,12 @@ public class PostController {
 
     @Operation(summary = "게시글 삭제", description = "게시글 ID와 로그인한 유저 정보를 비교하여 본인의 게시글을 삭제합니다.")
     @DeleteMapping("/{postId}")
-    public ApiResponse<String> deletePost(@Parameter(description = "삭제할 게시글의 ID") @PathVariable Long postId,
+    public ApiResponse<Void> deletePost(@Parameter(description = "삭제할 게시글의 ID") @PathVariable Long postId,
                                           @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails){
 
         postService.deletePost(postId, userDetails);
 
-        return ApiResponse.onSuccess("게시물 삭제 성공");
+        return ApiResponse.of(SuccessStatus._NO_CONTENT, null);
     }
 
 }
