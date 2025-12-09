@@ -1,5 +1,6 @@
 package com.ureka.techpost.domain.post.controller;
 
+import com.ureka.techpost.domain.auth.dto.CustomUserDetails;
 import com.ureka.techpost.domain.post.dto.PostResponseDTO;
 import com.ureka.techpost.domain.post.dto.PostRequestDTO;
 import com.ureka.techpost.domain.post.service.PostService;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -27,9 +29,10 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping("")
-    public ApiResponse<String> createPost(@RequestBody PostRequestDTO postRequestDTO){
+    public ApiResponse<String> createPost(@RequestBody PostRequestDTO postRequestDTO,
+                                          @AuthenticationPrincipal CustomUserDetails userDetails){
 
-        postService.save(postRequestDTO);
+        postService.save(postRequestDTO, userDetails);
 
         return ApiResponse.onSuccess("게시글 등록 성공");
     }
@@ -51,9 +54,10 @@ public class PostController {
     }
 
     @DeleteMapping("/{postId}")
-    public ApiResponse<String> deletePost(@PathVariable Long postId){
+    public ApiResponse<String> deletePost(@PathVariable Long postId,
+                                          @AuthenticationPrincipal CustomUserDetails userDetails){
 
-        postService.deletePost(postId);
+        postService.deletePost(postId, userDetails);
 
         return ApiResponse.onSuccess("게시물 삭제 성공");
     }

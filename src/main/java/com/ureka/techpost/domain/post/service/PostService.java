@@ -1,5 +1,6 @@
 package com.ureka.techpost.domain.post.service;
 
+import com.ureka.techpost.domain.auth.dto.CustomUserDetails;
 import com.ureka.techpost.domain.post.dto.PostResponseDTO;
 import com.ureka.techpost.domain.post.dto.PostRequestDTO;
 import com.ureka.techpost.domain.post.entity.Post;
@@ -29,13 +30,15 @@ public class PostService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글 없음"));
     }
 
-    public void save(PostRequestDTO postRequestDTO) {
+    public void save(PostRequestDTO postRequestDTO, CustomUserDetails userDetails) {
+
+        if(!userDetails.getUser().getRoleName().equals("ROLE_ADMIN")){
+            throw new IllegalArgumentException("권한이 없음");
+        }
 
         if(postRepository.existsByOriginalUrl(postRequestDTO.getOriginalUrl())){
             throw new IllegalArgumentException("이미 존재하는 게시글");
         }
-        
-        // TODO : 유저 권한 검사
 
         postRepository.save(Post.builder()
                         .title(postRequestDTO.getTitle())
@@ -52,12 +55,14 @@ public class PostService {
         return postRepository.search(keyword, publisher, pageable);
     }
 
-    public void deletePost(Long postId) {
+    public void deletePost(Long postId, CustomUserDetails userDetails) {
+
+        if(!userDetails.getUser().getRoleName().equals("ROLE_ADMIN")){
+            throw new IllegalArgumentException("권한이 없음");
+        }
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시물"));
-
-        // TODO : 유저 권한 검사 추가
 
         postRepository.delete(post);
     }

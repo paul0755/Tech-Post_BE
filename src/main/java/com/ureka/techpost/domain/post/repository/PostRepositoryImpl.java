@@ -31,7 +31,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<PostResponseDTO> search(String keyword, String publisher, Pageable pageable) {
+    public Page<PostResponseDTO> search(String keyword, String sourceName, Pageable pageable) {
         List<PostResponseDTO> content = queryFactory
                 .select(Projections.constructor(PostResponseDTO.class,
                         post.id,
@@ -42,7 +42,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                         post.publisher,
                         post.publishedAt,
                         post.sourceName,
-//                        post.createdAt,
+                        post.createdAt,
                         // 좋아요 수
                         // [수정] 좋아요 수: 아직 없으므로 0으로 대체
                         // ExpressionUtils.as(
@@ -63,7 +63,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                 .from(post)
                 .where(
                         titleOrSummaryContains(keyword), // 제목 or 요약
-                        providerContains(publisher)      // 출처
+                        sourceNameContains(sourceName)   // 출처
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -76,7 +76,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                 .from(post)
                 .where(
                         titleOrSummaryContains(keyword),
-                        providerContains(publisher)
+                        sourceNameContains(sourceName)
                 );
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
@@ -92,10 +92,10 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     }
 
     // 출처 검색
-    private BooleanExpression providerContains(String provider) {
+    private BooleanExpression sourceNameContains(String provider) {
         if (!StringUtils.hasText(provider)) {
             return null;
         }
-        return post.publisher.contains(provider);
+        return post.sourceName.contains(provider);
     }
 }
