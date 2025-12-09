@@ -1,8 +1,10 @@
 package com.ureka.techpost.global.config;
 
 import com.ureka.techpost.domain.auth.handler.CustomLogoutHandler;
+import com.ureka.techpost.domain.auth.handler.OAuth2LoginSuccessHandler;
 import com.ureka.techpost.domain.auth.jwt.JwtAuthenticationFilter;
 import com.ureka.techpost.domain.auth.jwt.JwtUtil;
+import com.ureka.techpost.domain.auth.service.CustomOAuth2UserService;
 import com.ureka.techpost.domain.auth.service.TokenService;
 import com.ureka.techpost.domain.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,8 +36,8 @@ public class SecurityConfig {
 	private final UserRepository userRepository;
 	private final TokenService tokenService;
 	private final CustomLogoutHandler customLogoutHandler;
-//	private final CustomOAuth2UserService customOAuth2UserService;
-//	private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+	private final CustomOAuth2UserService customOAuth2UserService;
+	private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
 	static final String[] WHITE_LIST = {"/swagger-ui/**",
 			"/v3/api-docs/**",
@@ -79,6 +81,12 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers(WHITE_LIST).permitAll()
 						.anyRequest().permitAll()
+				)
+
+				.oauth2Login(oauth2 -> oauth2
+						.userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
+								.userService(customOAuth2UserService))
+						.successHandler(oAuth2LoginSuccessHandler)
 				)
 
 				.logout(logout -> logout
