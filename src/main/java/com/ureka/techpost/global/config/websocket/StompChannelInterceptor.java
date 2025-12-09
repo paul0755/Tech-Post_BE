@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
 public class StompChannelInterceptor implements ChannelInterceptor {
 
     // application.yaml에 정의된 jwt.secretKey 값을 가져와 필드에 주입
-    @Value("${jwt.secretKey}")
+    @Value("${jwt.secret}")
     private String secretKey;
 
     private SecretKey getSigningKey() {
