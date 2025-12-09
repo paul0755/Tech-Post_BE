@@ -18,12 +18,7 @@ import java.util.List;
 import com.ureka.techpost.global.apiPayload.code.BaseCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -55,6 +50,12 @@ public class ChatController {
     @PostMapping("/{roomId}/join")
     public ApiResponse<Void> joinChatRoom(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long roomId) {
         chatService.joinChatRoom(userDetails, roomId);
+        return ApiResponse.onSuccess(null);
+    }
+
+    @DeleteMapping("/{roomId}/leave")
+    public ApiResponse<Void> leaveChatRoom(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long roomId) {
+        chatService.leaveChatRoom(userDetails, roomId);
         return ApiResponse.onSuccess(null);
     }
 }
