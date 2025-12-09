@@ -21,7 +21,7 @@ import static com.ureka.techpost.domain.post.entity.QPost.post;
  * @file PostRepositoryImpl.java
  * @author 최승언
  * @version 1.0
- * @since 2025-01-01
+ * @since 2025-12-09
  * @description QueryDSL을 활용하여 게시글 검색, 필터링 등 복잡한 조회 로직을 실제로 구현한 클래스입니다.
  */
 
