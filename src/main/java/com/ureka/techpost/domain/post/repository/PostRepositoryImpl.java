@@ -1,7 +1,9 @@
 package com.ureka.techpost.domain.post.repository;
 
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.ureka.techpost.domain.post.dto.PostResponseDTO;
@@ -14,13 +16,13 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 
 import static com.ureka.techpost.domain.post.entity.QPost.post;
-//import static com.ureka.techpost.domain.post.entity.QComment.comment;
+import static com.ureka.techpost.domain.comment.entity.QComment.comment;
 //import static com.ureka.techpost.domain.post.entity.QLikes.likes;
 
 /**
  * @file PostRepositoryImpl.java
  * @author 최승언
- * @version 1.0
+ * @version 1.1
  * @since 2025-12-09
  * @description QueryDSL을 활용하여 게시글 검색, 필터링 등 복잡한 조회 로직을 실제로 구현한 클래스입니다.
  */
@@ -52,13 +54,11 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
                         //        "likeCount"),
                         com.querydsl.core.types.dsl.Expressions.asNumber(0L),
 
-                        // [수정] 댓글 수: 아직 없으므로 0으로 대체
-                        // ExpressionUtils.as(
-                        //        JPAExpressions.select(comment.count())
-                        //                .from(comment)
-                        //                .where(comment.post.eq(post)),
-                        //        "commentCount")
-                        com.querydsl.core.types.dsl.Expressions.asNumber(0L)
+                         ExpressionUtils.as(
+                                JPAExpressions.select(comment.count())
+                                        .from(comment)
+                                        .where(comment.post.eq(post)),
+                                "commentCount")
                 ))
                 .from(post)
                 .where(
