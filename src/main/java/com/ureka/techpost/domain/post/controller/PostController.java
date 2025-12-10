@@ -5,9 +5,10 @@ import com.ureka.techpost.domain.post.dto.PostResponseDTO;
 import com.ureka.techpost.domain.post.dto.PostRequestDTO;
 import com.ureka.techpost.domain.post.service.PostService;
 import com.ureka.techpost.global.apiPayload.ApiResponse;
-import com.ureka.techpost.global.apiPayload.code.status.SuccessStatus;
+import com.ureka.techpost.global.apiPayload.code.SuccessStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
  @description 게시글 관련 API 요청(생성, 조회, 검색, 삭제)을 받아 서비스 계층으로 전달하고 응답을 반환하는 컨트롤러 클래스입니다.
  */
 
+@Tag(name = "게시글(Post) API", description = "게시글 관련 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/posts")
