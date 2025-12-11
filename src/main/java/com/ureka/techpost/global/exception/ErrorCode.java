@@ -14,7 +14,9 @@ public enum ErrorCode {
     POST_NOT_FOUND(HttpStatus.BAD_REQUEST, "해당 게시글을 찾을 수 없습니다."),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND , "해당 댓글을 찾을 수 없습니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 유저를 찾을 수 없습니다."),
-    USER_NOT_MATCH(HttpStatus.FORBIDDEN, "수정 및 삭제 권한이 없습니다.");
+    USER_NOT_MATCH(HttpStatus.FORBIDDEN, "수정 및 삭제 권한이 없습니다."),
+    ALREADY_LIKED(HttpStatus.CONFLICT, "이미 좋아요를 누르셨습니다."),
+    LIKE_NOT_FOUND(HttpStatus.NOT_FOUND, "좋아요를 누르지 않았습니다.");
 
 
     private final HttpStatus status;
