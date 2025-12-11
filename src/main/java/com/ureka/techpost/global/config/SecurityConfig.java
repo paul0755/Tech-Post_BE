@@ -37,7 +37,7 @@ public class SecurityConfig {
     private final TokenService tokenService;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
-    
+
 	static final String[] WHITE_LIST = {"/swagger-ui/**",
 			"/v3/api-docs/**",
 			"/swagger-resources/**",
