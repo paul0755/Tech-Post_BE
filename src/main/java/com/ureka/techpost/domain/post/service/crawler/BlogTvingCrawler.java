@@ -39,7 +39,7 @@ public class BlogTvingCrawler implements BaseCrawler {
                     .timeout(10000)
                     .get();
 
-            // RSS의 item 요소들 추출 (이미 최신순으로 정렬되어 있음)
+            // RSS item 요소들 추출
             Elements items = rssDoc.select("item");
 
             int count = 0;
@@ -55,7 +55,7 @@ public class BlogTvingCrawler implements BaseCrawler {
                     String url = linkElement != null ? linkElement.text() : "";
                     if (url.isEmpty()) continue;
 
-                    // Medium URL의 쿼리 파라미터 제거 (예: ?source=rss----52cdc55547df---4)
+                    // Medium URL의 쿼리 파라미터 제거
                     if (url.contains("?")) {
                         url = url.substring(0, url.indexOf("?"));
                     }
@@ -105,7 +105,7 @@ public class BlogTvingCrawler implements BaseCrawler {
                         publishedAt = LocalDateTime.now();
                     }
 
-                    // 썸네일 추출 (content:encoded에서 첫 번째 이미지 찾기)
+                    // 썸네일 추출
                     String thumbnailUrl = null;
                     Element contentElement = item.selectFirst("content|encoded, encoded");
                     if (contentElement != null) {

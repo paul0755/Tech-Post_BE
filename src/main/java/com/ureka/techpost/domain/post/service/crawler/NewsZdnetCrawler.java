@@ -40,14 +40,12 @@ public class NewsZdnetCrawler implements BaseCrawler {
                     .timeout(10000)
                     .get();
 
-            // "인기뉴스" 섹션 찾기
             Element popularSection = doc.select("h2:contains(인기뉴스)").first();
             if (popularSection == null) {
                 log.warn("인기뉴스 섹션을 찾을 수 없습니다.");
                 return posts;
             }
 
-            // 인기뉴스 바로 다음의 news_box
             Element newsBox = popularSection.nextElementSibling();
             while (newsBox != null && !newsBox.hasClass("news_box")) {
                 newsBox = newsBox.nextElementSibling();
@@ -58,7 +56,7 @@ public class NewsZdnetCrawler implements BaseCrawler {
                 return posts;
             }
 
-            // newsPost 클래스를 가진 모든 기사 (big + small)
+            // newsPost 클래스를 가진 모든 기사
             Elements articles = newsBox.select(".newsPost");
 
             int count = 0;
@@ -76,7 +74,7 @@ public class NewsZdnetCrawler implements BaseCrawler {
                     String relativeUrl = linkElement.attr("href");
                     String url = relativeUrl.startsWith("http") ? relativeUrl : ZDNET_BASE_URL + relativeUrl;
 
-                    // 이미 DB에 있는 URL이면 건너뛰기 (중단하지 않고 계속)
+                    // 이미 DB에 있는 URL이면 건너뛰기
                     if (postRepository.existsByOriginalUrl(url)) {
                         log.debug("이미 존재하는 URL 건너뛰기: {}", url);
                         continue;
@@ -113,14 +111,14 @@ public class NewsZdnetCrawler implements BaseCrawler {
                     if (bylineElement != null) {
                         String bylineText = bylineElement.text();
 
-                        // 기자 추출 (예: "2025.11.19 AM 07:35김미정 기자" -> "김미정")
+                        // 기자 추출
                         Pattern authorPattern = Pattern.compile("([가-힣]{2,4})\\s*기자");
                         Matcher authorMatcher = authorPattern.matcher(bylineText);
                         if (authorMatcher.find()) {
                             author = authorMatcher.group(1);
                         }
 
-                        // 날짜 추출 (예: "2025.11.19 AM 07:35")
+                        // 날짜 추출 
                         Pattern datePattern = Pattern.compile("(\\d{4})\\.(\\d{2})\\.(\\d{2})\\s+(AM|PM)\\s+(\\d{2}):(\\d{2})");
                         Matcher dateMatcher = datePattern.matcher(bylineText);
                         if (dateMatcher.find()) {

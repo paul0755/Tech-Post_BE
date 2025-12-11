@@ -39,7 +39,7 @@ class BlogKakaoCrawler implements BaseCrawler {
                     .timeout(10000)
                     .get();
 
-            // RSS의 item 요소들 추출 (이미 최신순으로 정렬되어 있음)
+            // RSS item 요소들 추출
             Elements items = rssDoc.select("item");
 
             int count = 0;
@@ -82,7 +82,7 @@ class BlogKakaoCrawler implements BaseCrawler {
                     LocalDateTime publishedAt;
                     if (pubDateElement != null && !pubDateElement.text().isEmpty()) {
                         try {
-                            // RFC 1123 형식 파싱 (예: "Wed, 03 Dec 2025 15:00:00 GMT")
+
                             ZonedDateTime zonedDateTime = ZonedDateTime.parse(
                                     pubDateElement.text(),
                                     DateTimeFormatter.RFC_1123_DATE_TIME

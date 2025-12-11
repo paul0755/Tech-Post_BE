@@ -96,14 +96,13 @@ public class NewsEtnewsCrawler implements BaseCrawler {
                         }
                     }
 
-                    // 날짜 추출 (YYYY-MM-DD HH:MM 형식)
+                    // 날짜 추출
                     Element dateElement = article.selectFirst("span.date");
                     LocalDateTime publishedAt = LocalDateTime.now();
 
                     if (dateElement != null) {
                         String dateText = dateElement.text().trim();
                         try {
-                            // "2025-12-11 10:46" 형식 파싱
                             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
                             publishedAt = LocalDateTime.parse(dateText, formatter);
                         } catch (Exception e) {

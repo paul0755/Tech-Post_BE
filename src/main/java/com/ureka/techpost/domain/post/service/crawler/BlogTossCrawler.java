@@ -40,7 +40,7 @@ public class BlogTossCrawler implements BaseCrawler {
                     .timeout(10000)
                     .get();
 
-            // RSS의 item 요소들 추출 (이미 최신순으로 정렬되어 있음)
+            // RSS item 요소들 추출
             Elements items = rssDoc.select("item");
 
             int count = 0;
@@ -75,7 +75,6 @@ public class BlogTossCrawler implements BaseCrawler {
                     LocalDateTime publishedAt;
                     if (pubDateElement != null && !pubDateElement.text().isEmpty()) {
                         try {
-                            // RFC 1123 형식 파싱 (예: "Wed, 10 Dec 2025 03:32:00 GMT")
                             ZonedDateTime zonedDateTime = ZonedDateTime.parse(
                                     pubDateElement.text(),
                                     DateTimeFormatter.RFC_1123_DATE_TIME
@@ -106,8 +105,6 @@ public class BlogTossCrawler implements BaseCrawler {
                             String firstText = firstParagraph.text();
 
                             // "입니다" 패턴으로 작성자 추출
-                            // 예: "리서치 플랫폼팀 서소희, 문은진입니다" -> "서소희, 문은진"
-                            // 예: "안녕하세요. 토스코어 토스페이먼츠개발팀 정수호입니다" -> "정수호"
                             if (firstText.contains("입니다")) {
                                 // "입니다" 앞에서 한글 이름 패턴 찾기: 한글2-4자(, 한글2-4자)*
                                 java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
