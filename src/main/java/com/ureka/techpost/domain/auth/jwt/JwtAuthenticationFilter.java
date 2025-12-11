@@ -35,10 +35,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String requestURI = request.getRequestURI();
-        // reissue 요청은 헤더에 access 토큰이 아닌 refresh 토큰이 필요하기 때문에,
-        // JwtAuthenticationFilter의 검증 로직을 건너뛰어야 함
-        return requestURI.equals("/api/auth/reissue") || requestURI.equals("/api/auth/signup") || requestURI.equals("/api/auth/login");
+        String uri = request.getRequestURI();
+        // 헬스체크 및 public URL
+        if (uri.equals("/") ||
+                uri.startsWith("/health") ||
+                uri.startsWith("/actuator") ||
+                uri.equals("/api/auth/reissue") ||
+                uri.equals("/api/auth/signup") ||
+                uri.equals("/api/auth/login")) {
+            return true;
+        }
+
+        return false;
     }
 
 	@Override
