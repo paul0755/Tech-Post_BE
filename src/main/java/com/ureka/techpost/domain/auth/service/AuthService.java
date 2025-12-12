@@ -59,145 +59,117 @@ public class AuthService {
         userRepository.save(user);
     }
 
-<<<<<<< HEAD
-	public void login(LoginDto loginDto, HttpServletResponse response) {
-=======
-	public TokenDto login(LoginDto loginDto) {
-		// 입력 데이터에서 username, password 꺼냄
-		String username = loginDto.getUsername();
-		String password = loginDto.getPassword();
->>>>>>> 592d087eae5f80179e60ce34369d59d4450934a8
-
-        log.info("🔐 [LOGIN] 로그인 요청 도착 - username={}, password 입력 여부={}",
-                loginDto.getUsername(),
-                (loginDto.getPassword() != null));
+    public TokenDto login(LoginDto loginDto, HttpServletResponse response) {
 
         // 입력 데이터에서 username, password 꺼냄
         String username = loginDto.getUsername();
         String password = loginDto.getPassword();
-        log.debug("🔍 [LOGIN] username={}, passwordLength={}",
+        log.info("🔐 [LOGIN] 로그인 요청 - username={}, passwordLength={}",
                 username, password != null ? password.length() : 0);
 
-        // Spring Security 인증 토큰 생성
+// 로그인을 위한 Spring Security 인증 토큰 생성
         UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(username, password, null);
+        log.debug("🔑 [LOGIN] 인증 토큰 생성 완료 - authToken={}", authToken);
 
-        log.info("🔑 [LOGIN] 인증 토큰 생성 완료 - authToken={}", authToken);
-
-<<<<<<< HEAD
+// AuthenticationManager를 통해 사용자 인증 시도
+// 인증 성공 시, 사용자 정보(Principal)와 권한(Authorities)을 포함한 Authentication 객체 반환
         Authentication authentication;
         try {
-            // AuthenticationManager를 통해 사용자 인증 시도
             authentication = authenticationManager.authenticate(authToken);
             log.info("✅ [LOGIN] 인증 성공 - principal={}, authorities={}",
-                    authentication.getPrincipal(),
-                    authentication.getAuthorities());
+                    authentication.getPrincipal(), authentication.getAuthorities());
         } catch (Exception e) {
             log.error("❌ [LOGIN] 인증 실패 - username={}, error={}", username, e.getMessage(), e);
-            throw e; // 에러 다시 던짐
+            throw e;
         }
 
-        // 사용자 추출
+// 사용자 추출
         CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
         log.info("👤 [LOGIN] 사용자 정보 로드 완료 - userId={}, username={}, role={}",
-                user.getUser(),
+                user.getUser().getUserId(),
                 user.getUser().getUsername(),
                 user.getUser().getRoleName());
 
-        // JWT 액세스 토큰 및 리프레시 토큰 생성
+// JWT 액세스 토큰 및 리프레시 토큰 생성
         String access = jwtUtil.generateAccessToken(
                 "access",
                 user.getUsername(),
                 user.getUser().getName(),
                 user.getUser().getRoleName()
         );
-        log.info("🔐 [TOKEN] Access Token 생성 완료 - tokenLength={}", access.length());
+        log.info("🔐 [TOKEN] Access Token 생성 완료 - length={}", access.length());
 
         String refresh = jwtUtil.generateRefreshToken("refresh");
-        log.info("🔄 [TOKEN] Refresh Token 생성 완료 - tokenLength={}", refresh.length());
+        log.info("🔄 [TOKEN] Refresh Token 생성 완료 - length={}", refresh.length());
 
-        // 리프레시 토큰 DB 저장
+// 새로 발급된 리프레시 토큰을 DB에 저장
         try {
             tokenService.addRefreshToken(user.getUser(), refresh);
-            log.info("💾 [TOKEN] Refresh Token DB 저장 성공 - userId={}", user.getUser());
+            log.info("💾 [TOKEN] Refresh Token DB 저장 성공 - userId={}", user.getUser().getUserId());
         } catch (Exception e) {
             log.error("❌ [TOKEN] Refresh Token DB 저장 실패 - userId={}, error={}",
-                    user.getUser(), e.getMessage(), e);
+                    user.getUser().getUserId(), e.getMessage(), e);
             throw e;
         }
 
-        // AccessToken → Response Header 전달
-        response.setHeader("Authorization", "Bearer " + access);
-        log.info("📤 [RESPONSE] Authorization 헤더에 Access Token 추가 완료");
+        log.info("📤 [LOGIN] TokenDto 반환 완료 - username={}", username);
 
-        // RefreshToken → HttpOnly 쿠키로 전달
-        Cookie refreshCookie = tokenService.createCookie("refresh", refresh);
-        response.addCookie(refreshCookie);
-        log.info("📤 [RESPONSE] Refresh Token 쿠키 추가 완료 - cookieName={}, maxAge={}",
-                refreshCookie.getName(), refreshCookie.getMaxAge());
+        return TokenDto.builder()
+                .accessToken(access)
+                .refreshToken(refresh)
+                .build();
+    }
 
-        // HTTP 응답 상태 설정
-        response.setStatus(HttpStatus.OK.value());
-        log.info("✅ [LOGIN] 로그인 프로세스 완료 - username={}", username);
-=======
-		// 새로 발급된 리프레시 토큰을 DB에 저장
-		tokenService.addRefreshToken(user.getUser(), refresh);
 
-		return TokenDto.builder()
-				.accessToken(access)
-				.refreshToken(refresh)
-				.build();
->>>>>>> 592d087eae5f80179e60ce34369d59d4450934a8
-	}
+    // 토큰 재발급
+    public TokenDto reissue(String accessToken, String refreshToken) {
 
-	// 토큰 재발급
-	public TokenDto reissue(String accessToken, String refreshToken) {
+        // Access Token 검증 (형식 확인 등) - 이미 필터나 컨트롤러에서 Bearer 제거 후 넘어왔다고 가정
+        if (accessToken == null) {
+            throw new CustomException(ErrorCode.ACCESS_TOKEN_MISSING);
+        }
 
-		// Access Token 검증 (형식 확인 등) - 이미 필터나 컨트롤러에서 Bearer 제거 후 넘어왔다고 가정
-		if (accessToken == null) {
-			throw new CustomException(ErrorCode.ACCESS_TOKEN_MISSING);
-		}
+        // Refresh 토큰 검증
+        tokenService.validateRefreshToken(refreshToken);
 
-		// Refresh 토큰 검증
-		tokenService.validateRefreshToken(refreshToken);
+        // --- 검증 통과 --- //
 
-		// --- 검증 통과 --- //
+        // 기존 토큰에서 username 꺼냄
+        String username = jwtUtil.getUsernameFromExpirationToken(accessToken);
 
-		// 기존 토큰에서 username 꺼냄
-		String username = jwtUtil.getUsernameFromExpirationToken(accessToken);
+        User foundUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-		User foundUser = userRepository.findByUsername(username)
-				.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        // 새로운 access/refresh 토큰 생성
+        String newAccess = jwtUtil.generateAccessToken("access", username, foundUser.getName(), foundUser.getRoleName());
+        String newRefresh = jwtUtil.generateRefreshToken("refresh");
 
-		// 새로운 access/refresh 토큰 생성
-		String newAccess = jwtUtil.generateAccessToken("access", username, foundUser.getName(), foundUser.getRoleName());
-		String newRefresh = jwtUtil.generateRefreshToken("refresh");
+        // 기존 Refresh 토큰 DB에서 삭제 후 새 Refresh 토큰 저장
+        // Key가 tokenValue이므로 기존 토큰을 지우고 새 토큰을 저장해야 함
+        tokenService.deleteByTokenValue(refreshToken);
+        tokenService.addRefreshToken(foundUser, newRefresh);
 
-		// 기존 Refresh 토큰 DB에서 삭제 후 새 Refresh 토큰 저장
-		// Key가 tokenValue이므로 기존 토큰을 지우고 새 토큰을 저장해야 함
-		tokenService.deleteByTokenValue(refreshToken);
-		tokenService.addRefreshToken(foundUser, newRefresh);
+        return TokenDto.builder()
+                .accessToken(newAccess)
+                .refreshToken(newRefresh)
+                .build();
+    }
 
-		return TokenDto.builder()
-				.accessToken(newAccess)
-				.refreshToken(newRefresh)
-				.build();
-	}
-
-	// 로그아웃 처리
-	@Transactional
-	public void logout(String refreshToken) {
-		// 토큰이 존재하면 검증 및 DB 삭제 시도
-		if (refreshToken != null) {
-			try {
-				// 토큰 검증 (만료, 위조, DB 존재 여부 확인)
-				tokenService.validateRefreshToken(refreshToken);
-				// DB에서 Refresh 토큰 제거
-				tokenService.deleteByTokenValue(refreshToken);
-			} catch (CustomException e) {
-				// 토큰이 유효하지 않거나(만료 등), 이미 DB에 없는 경우
-				// 로그아웃 과정이므로 무시
-			}
-		}
-	}
+    // 로그아웃 처리
+    @Transactional
+    public void logout(String refreshToken) {
+        // 토큰이 존재하면 검증 및 DB 삭제 시도
+        if (refreshToken != null) {
+            try {
+                // 토큰 검증 (만료, 위조, DB 존재 여부 확인)
+                tokenService.validateRefreshToken(refreshToken);
+                // DB에서 Refresh 토큰 제거
+                tokenService.deleteByTokenValue(refreshToken);
+            } catch (CustomException e) {
+                // 토큰이 유효하지 않거나(만료 등), 이미 DB에 없는 경우
+                // 로그아웃 과정이므로 무시
+            }
+        }
+    }
 }
