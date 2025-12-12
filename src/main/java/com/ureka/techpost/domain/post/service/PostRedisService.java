@@ -136,6 +136,18 @@ public class PostRedisService {
                 .collect(Collectors.toList());
     }
 
+    // 실시간 크롤링된 게시물 랭킹에 반영
+    public void addRankingBatch(List<Post> posts) {
+        if (posts == null || posts.isEmpty()) {
+            return;
+        }
+
+        for (Post post : posts) {
+            redisTemplate.opsForZSet().add(RANKING_KEY, post.getId().toString(), 0.0);
+        }
+
+    }
+
     // 랭킹이 비어있을 때 DB 기반으로 초기화하는 메서드
     public void initRankingIfEmpty() {
 
