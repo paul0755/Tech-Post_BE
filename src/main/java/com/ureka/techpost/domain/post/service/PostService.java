@@ -24,6 +24,7 @@ public class PostService {
 
     private final PostRepository postRepository;
 
+
     public PostResponseDTO findById(Long id) {
 
         return postRepository.findPostById(id)
@@ -40,7 +41,9 @@ public class PostService {
             throw new IllegalArgumentException("이미 존재하는 게시글");
         }
 
-        postRepository.save(Post.builder()
+        // 게시물 저장
+        Post savedPost = postRepository.save(
+                Post.builder()
                         .title(postRequestDTO.getTitle())
                         .summary(postRequestDTO.getSummary())
                         .originalUrl(postRequestDTO.getOriginalUrl())
@@ -48,7 +51,9 @@ public class PostService {
                         .publishedAt(postRequestDTO.getPublishedAt())
                         .sourceName(postRequestDTO.getSourceName())
                         .thumbnailUrl(postRequestDTO.getThumbnailUrl())
-                        .build());
+                        .build()
+        );
+
     }
 
     public Page<PostResponseDTO> search(String keyword, String publisher, Pageable pageable){
@@ -66,4 +71,5 @@ public class PostService {
 
         postRepository.delete(post);
     }
+
 }
