@@ -43,7 +43,7 @@ public class AuthService {
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
-	private final TokenService tokenService;
+//	private final TokenService tokenService;
 	private final AuthenticationManager authenticationManager;
 
     // 회원가입
@@ -105,7 +105,7 @@ public class AuthService {
 
 // 새로 발급된 리프레시 토큰을 DB에 저장
         try {
-            tokenService.addRefreshToken(user.getUser(), refresh);
+//            tokenService.addRefreshToken(user.getUser(), refresh);
             log.info("💾 [TOKEN] Refresh Token DB 저장 성공 - userId={}", user.getUser().getUserId());
         } catch (Exception e) {
             log.error("❌ [TOKEN] Refresh Token DB 저장 실패 - userId={}, error={}",
@@ -131,7 +131,7 @@ public class AuthService {
         }
 
         // Refresh 토큰 검증
-        tokenService.validateRefreshToken(refreshToken);
+//        tokenService.validateRefreshToken(refreshToken);
 
         // --- 검증 통과 --- //
 
@@ -147,8 +147,8 @@ public class AuthService {
 
         // 기존 Refresh 토큰 DB에서 삭제 후 새 Refresh 토큰 저장
         // Key가 tokenValue이므로 기존 토큰을 지우고 새 토큰을 저장해야 함
-        tokenService.deleteByTokenValue(refreshToken);
-        tokenService.addRefreshToken(foundUser, newRefresh);
+//        tokenService.deleteByTokenValue(refreshToken);
+//        tokenService.addRefreshToken(foundUser, newRefresh);
 
         return TokenDto.builder()
                 .accessToken(newAccess)
@@ -163,9 +163,9 @@ public class AuthService {
         if (refreshToken != null) {
             try {
                 // 토큰 검증 (만료, 위조, DB 존재 여부 확인)
-                tokenService.validateRefreshToken(refreshToken);
+//                tokenService.validateRefreshToken(refreshToken);
                 // DB에서 Refresh 토큰 제거
-                tokenService.deleteByTokenValue(refreshToken);
+//                tokenService.deleteByTokenValue(refreshToken);
             } catch (CustomException e) {
                 // 토큰이 유효하지 않거나(만료 등), 이미 DB에 없는 경우
                 // 로그아웃 과정이므로 무시
